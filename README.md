@@ -24,9 +24,8 @@ The page follows one holding through eight stages:
 
 - **An interactive walkthrough** at the top: step one operation through eight modules with Back and Forward, or press Play. Six scenarios, from a transfer that is allowed to one the token refuses, an atomic DvP purchase, a lost wallet recovered by the agent, and buying a tokenized share with the dividend that follows
 - **Open ended or closed**: why anything gets minted at all when the asset already exists, and why mint and burn is what holds the peg
-
 - **The register question**: is the chain the register or a mirror of it, and the one test that settles it
-- **Standards compared**: ERC-20, ERC-1404, ERC-1400, ERC-3643 (T-REX) and Solana's Token-2022, by where the rule gets evaluated
+- **Standards compared**: ERC-20, ERC-1404, the ERC-1400 family in four pieces, ERC-3643, ERC-7518 and the now final ERC-7943 (uRWA), plus asset-shape standards, the non-EVM chains that put the controls in the protocol, cross-chain transport, and the identifiers a tokenized security still needs
 - **Identity, not addresses**: on-chain identity, claims and their issuers, compliance modules, the holder cap problem
 - **The powers the issuer keeps**: freeze, partial freeze, forced transfer, recovery and pause, and the trade they represent
 - **The money leg**: delivery versus payment, why atomic is not the same as T+0, and what happens when the cash leg is off chain
