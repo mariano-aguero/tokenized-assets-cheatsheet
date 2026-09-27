@@ -157,7 +157,7 @@
       <div class="obj" id="obj"><p class="muted small">Nothing yet.</p></div>
       <h4 style="margin-top:18px">Register</h4>
       <table class="mini" id="ledger"><tbody><tr class="muted"><td colspan="3">Nothing yet.</td></tr></tbody></table>
-      <h4 style="margin-top:18px">Agent flags <span class="pill" id="queueCount">0</span></h4>
+      <h4 style="margin-top:18px">Exception queue <span class="pill" id="queueCount">0</span></h4>
       <p class="muted small" id="queueNote">None.</p>
     </div>
   </div>
@@ -721,6 +721,7 @@ table.mini td:last-child { text-align: right; }
 
 <h2><span class="num">11</span>The patterns, and where they come back</h2>
 <p class="lede">It is tempting to think a chain removes the plumbing. One pattern genuinely disappears. The rest survive, and a few new ones arrive with the chain itself.</p>
+<p>The names below are deliberately the same as in the <a href="https://mariano-aguero.github.io/payments-engineering-cheatsheet/">payments page</a>. When the pattern is the same, calling it something else is how two teams end up solving one problem twice.</p>
 
 <h3>The one that disappears, and only sometimes</h3>
 <div class="card">
@@ -732,7 +733,7 @@ table.mini td:last-child { text-align: right; }
 <h3>The ones that survive unchanged</h3>
 <div class="grid">
 <div class="card">
-<h4>Idempotency</h4>
+<h4>Idempotency keys</h4>
 <p>A subscription submitted twice must not mint twice. The chain hands you a natural key in the transaction hash, but the instruction that reached your backend before it ever became a transaction needs its own key, stored before the work.</p>
 <p class="fail"><b>Fails as:</b> a retried request that mints a second time against one payment.</p>
 </div>
@@ -742,22 +743,22 @@ table.mini td:last-child { text-align: right; }
 <p class="fail"><b>Fails as:</b> submitting inside the database transaction, or after commit and hoping.</p>
 </div>
 <div class="card">
-<h4>Reconciliation</h4>
+<h4>Three way reconciliation</h4>
 <p>In the mirror model this is the core job, daily and forever: token supply against custodian position, holder balances against the internal record. It is the cost you accepted when you chose the mirror.</p>
 <p class="fail"><b>Fails as:</b> discovering a drift during an audit instead of on the morning it happened.</p>
 </div>
 <div class="card">
-<h4>Exception queue</h4>
+<h4>Exception queue, not an alert</h4>
 <p>Whatever does not reconcile becomes a work item with an owner and an age. Same shape as a payments break, and the health metric of the operation is the size of that queue.</p>
 <p class="fail"><b>Fails as:</b> mismatches reported into a channel nobody owns.</p>
 </div>
 <div class="card">
-<h4>Fail closed, already for free</h4>
+<h4>Fail closed or fail open, decided per operation</h4>
 <p>The reverting transfer is fail-closed behaviour built into the asset: when a rule cannot be satisfied, nothing happens. Payments has to build that discipline; here the default is correct, which makes the off-chain paths the dangerous ones by contrast.</p>
 <p class="fail"><b>Fails as:</b> an off-chain step that fails open while the on-chain one fails closed, so the two halves disagree.</p>
 </div>
 <div class="card">
-<h4>Circuit breaker on the oracle</h4>
+<h4>Circuit breaker and bulkhead</h4>
 <p>NAV arrives from outside. A stale or missing price is the same problem as a dead provider, with the same decision to make in advance: halt subscriptions, or price off the last known value and accept the error.</p>
 <p class="fail"><b>Fails as:</b> minting against a price nobody checked the freshness of.</p>
 </div>
@@ -771,12 +772,12 @@ table.mini td:last-child { text-align: right; }
 <p class="fail"><b>Fails as:</b> marking a subscription complete at one confirmation and reversing it by hand later.</p>
 </div>
 <div class="card">
-<h4>Nonce and stuck transactions</h4>
+<h4>Nonce management and stuck transactions</h4>
 <p>The issuer has a minting address with sequential nonces. One stuck transaction blocks every mint behind it, so you need a single writer per address, fee replacement and a watcher.</p>
 <p class="fail"><b>Fails as:</b> two workers minting from the same address under load.</p>
 </div>
 <div class="card">
-<h4>Gas as an operational balance</h4>
+<h4>Gas abstraction</h4>
 <p>Somebody funds the wallet that pays for mints, distributions and corporate actions. It is a balance that runs out, usually on a weekend, and it belongs on a dashboard.</p>
 <p class="fail"><b>Fails as:</b> a dividend distribution that halts halfway through the holder list.</p>
 </div>
@@ -798,7 +799,7 @@ table.mini td:last-child { text-align: right; }
 <tr><td>Admission, KYC and KYB</td><td>Identity registry and claims</td><td>Eligibility is a stage with its own state, not a check inside signup</td></tr>
 <tr><td>The double-entry ledger</td><td>The register, and the transfer agent that keeps it</td><td>One authoritative record, and everything else is a projection of it</td></tr>
 <tr><td>Saga with compensations</td><td>Atomic DvP</td><td>Multi-party operations that must not half-complete. Tokenization can sometimes make the problem disappear instead of managing it</td></tr>
-<tr><td>Idempotency keys</td><td>Transaction hashes and nonces</td><td>The same instruction submitted twice must not move value twice</td></tr>
+<tr><td>Idempotency keys</td><td>Idempotency keys, with the transaction hash as a second natural key</td><td>The same instruction submitted twice must not move value twice. The chain gives you one key, the instruction that arrived before it became a transaction still needs its own</td></tr>
 <tr><td>Reconciliation against the provider</td><td>Register against custodian holdings</td><td>Somebody has to prove the two sides still agree, on a schedule</td></tr>
 <tr><td>Exception queue</td><td>Frozen balances and manual review</td><td>Anything a human must resolve needs a queue with an owner</td></tr>
 <tr><td>Fail closed</td><td>The transfer reverts</td><td>When a rule cannot be evaluated, refuse rather than guess</td></tr>
