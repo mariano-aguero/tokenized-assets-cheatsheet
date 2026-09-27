@@ -33,6 +33,7 @@ The page follows one holding through eight stages:
 - **The market as it actually is**: rough sizes per category and who is in each
 - **Two companies, two answers**: Securitize owning the whole regulated stack, and Rain tokenizing its own receivables to settle with Visa every day of the week
 - **What breaks**: stale NAV, the wrapper disagreeing with the chain, one leg landing, redemption gates, composability that should not compose
+- **The patterns, and where they come back**: which one tokenization genuinely removes, which survive unchanged, and the ones the chain itself adds
 - **What this shares with payments**, mapped line by line, plus a build order and a field glossary
 
 ## Companion pages

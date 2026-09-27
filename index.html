@@ -719,7 +719,77 @@ table.mini td:last-child { text-align: right; }
 </div>
 </div>
 
-<h2><span class="num">11</span>What this shares with payments</h2>
+<h2><span class="num">11</span>The patterns, and where they come back</h2>
+<p class="lede">It is tempting to think a chain removes the plumbing. One pattern genuinely disappears. The rest survive, and a few new ones arrive with the chain itself.</p>
+
+<h3>The one that disappears, and only sometimes</h3>
+<div class="card">
+<h4>Saga with compensations</h4>
+<p>When both legs are tokens on the same chain, an atomic transaction replaces the whole apparatus: no compensations, no half-completed state, no exception queue for that path. This is the real engineering win of tokenization and it is worth being precise about how narrow it is.</p>
+<p class="fail"><b>It comes straight back</b> the moment any leg leaves the chain. Fiat subscriptions, a broker buying the underlying, a custodian confirming a position: the tokenized share flow is escrow, buy, confirm, mint, and if the purchase fails after the cash is escrowed you are compensating, exactly like a payment.</p>
+</div>
+
+<h3>The ones that survive unchanged</h3>
+<div class="grid">
+<div class="card">
+<h4>Idempotency</h4>
+<p>A subscription submitted twice must not mint twice. The chain hands you a natural key in the transaction hash, but the instruction that reached your backend before it ever became a transaction needs its own key, stored before the work.</p>
+<p class="fail"><b>Fails as:</b> a retried request that mints a second time against one payment.</p>
+</div>
+<div class="card">
+<h4>Transactional outbox</h4>
+<p>Your systems and the chain have to agree about what was instructed. Write the intent and the state change in the same transaction, then a relay submits it, so a crash between the two cannot lose a mint or fire two.</p>
+<p class="fail"><b>Fails as:</b> submitting inside the database transaction, or after commit and hoping.</p>
+</div>
+<div class="card">
+<h4>Reconciliation</h4>
+<p>In the mirror model this is the core job, daily and forever: token supply against custodian position, holder balances against the internal record. It is the cost you accepted when you chose the mirror.</p>
+<p class="fail"><b>Fails as:</b> discovering a drift during an audit instead of on the morning it happened.</p>
+</div>
+<div class="card">
+<h4>Exception queue</h4>
+<p>Whatever does not reconcile becomes a work item with an owner and an age. Same shape as a payments break, and the health metric of the operation is the size of that queue.</p>
+<p class="fail"><b>Fails as:</b> mismatches reported into a channel nobody owns.</p>
+</div>
+<div class="card">
+<h4>Fail closed, already for free</h4>
+<p>The reverting transfer is fail-closed behaviour built into the asset: when a rule cannot be satisfied, nothing happens. Payments has to build that discipline; here the default is correct, which makes the off-chain paths the dangerous ones by contrast.</p>
+<p class="fail"><b>Fails as:</b> an off-chain step that fails open while the on-chain one fails closed, so the two halves disagree.</p>
+</div>
+<div class="card">
+<h4>Circuit breaker on the oracle</h4>
+<p>NAV arrives from outside. A stale or missing price is the same problem as a dead provider, with the same decision to make in advance: halt subscriptions, or price off the last known value and accept the error.</p>
+<p class="fail"><b>Fails as:</b> minting against a price nobody checked the freshness of.</p>
+</div>
+</div>
+
+<h3>The ones the chain adds</h3>
+<div class="grid">
+<div class="card">
+<h4>Confirmation depth and reorgs</h4>
+<p>A mint that was confirmed can un-happen. Your off-chain record has to treat chain state as probabilistic until a depth you chose per chain, which is a new flavour of the same eventual-consistency problem.</p>
+<p class="fail"><b>Fails as:</b> marking a subscription complete at one confirmation and reversing it by hand later.</p>
+</div>
+<div class="card">
+<h4>Nonce and stuck transactions</h4>
+<p>The issuer has a minting address with sequential nonces. One stuck transaction blocks every mint behind it, so you need a single writer per address, fee replacement and a watcher.</p>
+<p class="fail"><b>Fails as:</b> two workers minting from the same address under load.</p>
+</div>
+<div class="card">
+<h4>Gas as an operational balance</h4>
+<p>Somebody funds the wallet that pays for mints, distributions and corporate actions. It is a balance that runs out, usually on a weekend, and it belongs on a dashboard.</p>
+<p class="fail"><b>Fails as:</b> a dividend distribution that halts halfway through the holder list.</p>
+</div>
+<div class="card">
+<h4>Batched corporate actions</h4>
+<p>A split or a distribution touches every holder. It is a batch job with partial failure, so it needs the same treatment as any batch: idempotent per holder, resumable, and auditable about who was paid and who was not.</p>
+<p class="fail"><b>Fails as:</b> a loop with no record of where it stopped.</p>
+</div>
+</div>
+
+<div class="invariant"><b>The summary in one line:</b> tokenization removes the saga for the fully on-chain path and adds chain-specific operational work everywhere else. If a design claims it removed the plumbing, ask which legs are off chain, and the plumbing will be right there.</div>
+
+<h2><span class="num">12</span>What this shares with payments</h2>
 <p class="lede">If you have built payment systems, you already own most of this. The skeleton is the same and the vocabulary changed.</p>
 
 <table>
@@ -738,7 +808,7 @@ table.mini td:last-child { text-align: right; }
 
 <div class="note">The genuine difference is stage 1. A payment is an instruction; a tokenized asset is a claim that exists in law before any code runs. The legal structure is upstream of the architecture, and no amount of engineering moves it. Full treatment of the payments side: <a href="https://mariano-aguero.github.io/payments-engineering-cheatsheet/">Payments Engineering Cheatsheet</a>.</div>
 
-<h2><span class="num">12</span>Build order</h2>
+<h2><span class="num">13</span>Build order</h2>
 <ol>
 <li><b>Settle the legal structure first</b>, including which entity holds the register and under which exemption the thing is sold. Everything below is downstream of that answer.</li>
 <li><b>Identity before token.</b> The registry and the claim issuers exist before a single token is minted, because the first mint is already a restricted transfer.</li>
@@ -750,7 +820,7 @@ table.mini td:last-child { text-align: right; }
 <li><b>Servicing</b>, which is where the asset spends its life: NAV, yield, statements.</li>
 </ol>
 
-<h2><span class="num">13</span>Field glossary</h2>
+<h2><span class="num">14</span>Field glossary</h2>
 <table>
 <thead><tr><th>term</th><th>stage</th><th>what it is</th></tr></thead>
 <tbody>
