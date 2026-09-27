@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tokenized Assets Cheatsheet</title>
+    <meta name="description" content="What a tokenized asset actually is, who is allowed to hold it, how a restricted transfer works, and what happens when the chain and the legal register disagree.">
+    <meta name="keywords" content="tokenization, RWA, security token, ERC-3643, T-REX, ERC-1400, transfer agent, DvP, atomic settlement, BUIDL, Securitize, stablecoin">
+    <meta name="author" content="Tokenized Assets Cheatsheet">
+
+    <link rel="canonical" href="https://mariano-aguero.github.io/tokenized-assets-cheatsheet/">
+    <meta name="theme-color" content="#a78bfa">
+
+    <meta property="og:title" content="Tokenized Assets Cheatsheet">
+    <meta property="og:description" content="The lifecycle of a tokenized asset: the register, the rules inside the token, the money leg, and the day somebody loses their keys.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://mariano-aguero.github.io/tokenized-assets-cheatsheet/">
+    <meta property="og:site_name" content="Tokenized Assets Cheatsheet">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Tokenized Assets Cheatsheet">
+    <meta name="twitter:description" content="Tokenization from the register outwards: compliance inside the token, atomic settlement, and what breaks.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-primary: #0a0e17;
+            --bg-secondary: #111827;
+            --bg-tertiary: #1a2332;
+            --bg-code: #0d1117;
+            --accent-primary: #a78bfa;
+            --accent-secondary: #22d3ee;
+            --accent-warning: #ff6b35;
+            --accent-danger: #ff3860;
+            --accent-purple: #2dd4a7;
+            --text-primary: #e4e8ef;
+            --text-secondary: #8b949e;
+            --text-muted: #5c6370;
+            --border-color: #21293a;
+            --gradient-main: linear-gradient(135deg, #a78bfa 0%, #22d3ee 100%);
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg-primary); color: var(--text-primary); font-family: 'Outfit', -apple-system, sans-serif; line-height: 1.65; -webkit-font-smoothing: antialiased; }
+        .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px 96px; }
+        header { padding: 72px 0 40px; border-bottom: 1px solid var(--border-color); margin-bottom: 48px; }
+        h1 { font-size: clamp(2rem, 5vw, 3.1rem); font-weight: 800; letter-spacing: -0.02em; background: var(--gradient-main); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 14px; }
+        header p { color: var(--text-secondary); font-size: 1.1rem; max-width: 72ch; }
+        header p + p { margin-top: 14px; }
+        h2 { font-size: 1.6rem; font-weight: 700; margin: 56px 0 6px; letter-spacing: -0.01em; }
+        h2 .num { font-family: var(--font-mono); font-size: .95rem; color: var(--accent-primary); margin-right: 12px; font-weight: 500; }
+        .lede { color: var(--text-secondary); margin-bottom: 24px; max-width: 78ch; }
+        h3 { font-size: 1.05rem; font-weight: 600; margin: 28px 0 10px; color: var(--accent-secondary); }
+        p { max-width: 82ch; margin-bottom: 12px; }
+        table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: .94rem; }
+        th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border-color); vertical-align: top; }
+        th { color: var(--accent-primary); font-weight: 600; font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; }
+        td:first-child { font-family: var(--font-mono); font-size: .88rem; color: var(--text-primary); }
+        tbody tr:hover { background: rgba(255,255,255,.02); }
+        .card { background: var(--bg-secondary); border: 1px solid var(--border-color); border-left: 3px solid var(--accent-primary); border-radius: 8px; padding: 18px 22px; margin: 14px 0; }
+        .card h4 { font-size: 1rem; font-weight: 600; margin-bottom: 8px; font-family: var(--font-mono); }
+        .card p { font-size: .95rem; color: var(--text-secondary); margin-bottom: 8px; }
+        .card p:last-child { margin-bottom: 0; }
+        .card .fail b { color: var(--accent-warning); font-weight: 600; }
+        .card .fail { color: var(--accent-warning); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 14px; margin: 16px 0; }
+        ul, ol { margin: 0 0 16px 22px; color: var(--text-secondary); }
+        li { margin-bottom: 7px; max-width: 80ch; }
+        li b, p b { color: var(--text-primary); font-weight: 600; }
+        code { font-family: var(--font-mono); font-size: .87em; background: var(--bg-code); border: 1px solid var(--border-color); border-radius: 4px; padding: 1px 6px; color: var(--accent-primary); }
+        .spine { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; padding: 22px 26px; margin: 24px 0 8px; font-family: var(--font-mono); font-size: .9rem; overflow-x: auto; }
+        .spine ol { list-style: none; margin: 0; }
+        .spine li { margin-bottom: 10px; color: var(--text-primary); }
+        .spine li:last-child { margin-bottom: 0; }
+        .spine .stage { color: var(--accent-primary); }
+        .spine .q { color: var(--text-secondary); }
+        .invariant { border-left: 3px solid var(--accent-secondary); background: var(--bg-tertiary); padding: 14px 20px; margin: 12px 0; border-radius: 6px; }
+        .invariant b { color: var(--accent-secondary); }
+        .note { border-left: 3px solid var(--accent-purple); background: var(--bg-secondary); padding: 14px 20px; border-radius: 6px; margin: 20px 0; color: var(--text-secondary); font-size: .95rem; }
+        a { color: var(--accent-primary); }
+        footer { margin-top: 72px; padding-top: 28px; border-top: 1px solid var(--border-color); color: var(--text-muted); font-size: .9rem; }
+        @media (max-width: 640px) { .wrap { padding: 0 16px 64px; } header { padding: 48px 0 32px; } }
+    </style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+    <h1>Tokenized Assets Cheatsheet</h1>
+    <p>A tokenized asset is not a coin with a story attached. It is a claim on something off the chain, wrapped in a legal structure, recorded in a register, and represented by a token that carries the rules of who may hold it.</p>
+    <p>This page follows one holding from issuance to exit: who is allowed in, what the token actually enforces, where the truth is kept, how the money leg settles, and what happens on the day the chain and the paperwork disagree.</p>
+</header>
+
+<h2><span class="num">00</span>The spine</h2>
+<p class="lede">Every block below hangs off one of these stages. The order matters: most of the hard parts in tokenization are decided before a single token is minted.</p>
+
+<div class="spine">
+<ol>
+<li><span class="stage">1 &middot; Structure</span> <span class="q">what is the legal thing, and what does the token entitle you to?</span></li>
+<li><span class="stage">2 &middot; Admission</span> <span class="q">who is allowed to hold this at all?</span></li>
+<li><span class="stage">3 &middot; Issue</span> <span class="q">mint against the register, to a verified holder</span></li>
+<li><span class="stage">4 &middot; Hold</span> <span class="q">who has the keys, and what can they do with them?</span></li>
+<li><span class="stage">5 &middot; Transfer</span> <span class="q">a transfer that the token itself can refuse</span></li>
+<li><span class="stage">6 &middot; Service</span> <span class="q">price, yield, corporate actions, the boring part that never stops</span></li>
+<li><span class="stage">7 &middot; Exit</span> <span class="q">redeem or sell, and where does the cash leg come from?</span></li>
+<li><span class="stage">8 &middot; Repair</span> <span class="q">freeze, force, recover, when reality disagrees with the ledger</span></li>
+</ol>
+</div>
+<p style="color:var(--text-muted);font-size:.9rem">Stage 1 is legal work that constrains every line of code after it. Stage 8 is the one that makes a security token different from a bearer token, and the one most crypto engineers do not expect.</p>
+
+<div class="sim" id="sim">
+  <div class="sim-bar">
+    <button class="btn ok" data-load="ok">A transfer that is allowed</button>
+    <button class="btn bad" data-load="reject">The receiver is not verified</button>
+    <button class="btn ok2" data-load="dvp">Buying it, atomic DvP</button>
+    <button class="btn alt" data-load="recover">A lost wallet, recovered</button>
+    <button class="btn eq" data-load="stock">Buying a tokenized share</button>
+    <button class="btn eq" data-load="dividend">A dividend on that share</button>
+    <span class="state" id="simState">idle</span>
+  </div>
+
+  <div class="sim-bar transport">
+    <button class="btn ghost" data-go="prev" title="Previous step (left arrow)">&#9664; Back</button>
+    <button class="btn play" data-go="play" title="Play or pause (space)">&#9654; Play</button>
+    <button class="btn ghost" data-go="next" title="Next step (right arrow)">Forward &#9654;</button>
+    <button class="btn ghost" data-go="reset" title="Back to the start">&#8634; Reset</button>
+    <span class="counter" id="counter">0 / 0</span>
+  </div>
+
+  <div class="track" id="track">
+    <div class="tip" id="tip" hidden></div>
+    <div class="saga" id="saga" hidden><span>on-chain compliance</span></div>
+    <div class="token" id="token"><span>500<small>UNITS</small></span></div>
+    <div class="mod" data-mod="0"><u>4</u><b>Wallet</b><i>holds the keys</i></div>
+    <div class="mod" data-mod="1"><u>2</u><b>Identity</b><i>claims, not addresses</i></div>
+    <div class="mod" data-mod="2"><u>2</u><b>Compliance</b><i>the rule modules</i></div>
+    <div class="mod" data-mod="3"><u>5</u><b>Token</b><i>accepts or refuses</i></div>
+    <div class="mod" data-mod="4"><u>1</u><b>Register</b><i>the official record</i></div>
+    <div class="mod" data-mod="5"><u>7</u><b>Cash leg</b><i>the other half</i></div>
+    <div class="mod" data-mod="6"><u>4</u><b>Custodian</b><i>holds the underlying</i></div>
+    <div class="mod" data-mod="7"><u>8</u><b>Agent</b><i>freeze, force, recover</i></div>
+  </div>
+
+  <p class="map">Eight modules, eight stages. The number on each box is the stage it belongs to. <b>Identity and Compliance are both stage 2</b>, because admission is one idea split into who you are and what that lets you do, and <b>the dashed frame is what a transfer has to pass</b> before the token will move anything. Stages 3 and 6, issuance and servicing, are not in this run.</p>
+
+  <p class="now" id="now">Pick a scenario, then step through it with Back and Forward.</p>
+
+  <div class="panes">
+    <div class="pane">
+      <h4>Event log</h4>
+      <ol class="log" id="log"><li class="muted">Nothing yet.</li></ol>
+    </div>
+    <div class="pane">
+      <h4>Transfer object</h4>
+      <div class="obj" id="obj"><p class="muted small">Nothing yet.</p></div>
+      <h4 style="margin-top:18px">Register</h4>
+      <table class="mini" id="ledger"><tbody><tr class="muted"><td colspan="3">Nothing yet.</td></tr></tbody></table>
+      <h4 style="margin-top:18px">Agent flags <span class="pill" id="queueCount">0</span></h4>
+      <p class="muted small" id="queueNote">None.</p>
+    </div>
+  </div>
+</div>
+
+<style>
+.sim { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; margin: 24px 0 8px; }
+.sim-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.sim-bar.transport { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-color); }
+.btn { font-family: inherit; font-size: .88rem; font-weight: 600; border-radius: 6px; padding: 8px 14px; cursor: pointer; border: 1px solid transparent; transition: opacity .15s; }
+.btn:hover:not(:disabled) { opacity: .85; }
+.btn:disabled { opacity: .3; cursor: default; }
+.btn.ok { background: var(--accent-primary); color: #17092e; }
+.btn.ok2 { background: var(--accent-secondary); color: #04252b; }
+.btn.bad { background: var(--accent-warning); color: #2a1004; }
+.btn.alt { background: var(--accent-purple); color: #06231b; }
+.btn.eq { background: var(--bg-tertiary); color: var(--text-primary); border-color: var(--accent-secondary); }
+.btn.play { background: var(--bg-tertiary); color: var(--accent-primary); border-color: var(--accent-primary); min-width: 104px; }
+.btn.ghost { background: transparent; color: var(--text-secondary); border-color: var(--border-color); }
+.btn[aria-pressed="true"] { outline: 2px solid var(--text-primary); outline-offset: 2px; }
+.sim .state, .sim .counter { font-family: var(--font-mono); font-size: .8rem; color: var(--text-secondary); margin-left: auto; text-transform: uppercase; letter-spacing: .06em; }
+
+.track { position: relative; display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; padding: 34px 0 20px; margin-top: 18px; }
+.mod { position: relative; z-index: 2; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 8px; text-align: center; cursor: pointer; transition: border-color .2s, background .2s, transform .2s; }
+.mod:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
+.mod u { position: absolute; top: 5px; right: 7px; font-family: var(--font-mono); font-size: .6rem; text-decoration: none; color: var(--text-muted); }
+.mod b { display: block; font-size: .82rem; color: var(--text-primary); }
+.mod i { display: block; font-style: normal; font-size: .68rem; color: var(--text-muted); margin-top: 3px; line-height: 1.3; }
+.mod.active { border-color: var(--accent-primary); background: rgba(167,139,250,.12); transform: translateY(-3px); }
+.mod.done { border-color: rgba(167,139,250,.45); }
+.mod.warn { border-color: var(--accent-warning); background: rgba(255,107,53,.1); }
+.mod.err { border-color: var(--accent-danger); background: rgba(255,56,96,.12); }
+
+.saga { position: absolute; z-index: 1; border: 1px dashed var(--accent-secondary); border-radius: 10px; background: rgba(34,211,238,.06); cursor: pointer; }
+.saga span { position: absolute; top: -9px; left: 12px; background: var(--bg-secondary); padding: 0 7px; font-family: var(--font-mono); font-size: .64rem; color: var(--accent-secondary); letter-spacing: .05em; }
+.saga:hover { background: rgba(34,211,238,.12); }
+.tip { position: absolute; z-index: 6; width: 290px; background: var(--bg-code); border: 1px solid var(--accent-primary); border-radius: 8px; padding: 11px 14px; font-size: .78rem; line-height: 1.5; color: var(--text-secondary); box-shadow: 0 10px 34px rgba(0,0,0,.55); pointer-events: none; }
+.tip b { display: block; font-family: var(--font-mono); font-size: .8rem; color: var(--accent-primary); margin-bottom: 5px; }
+
+.token { position: absolute; z-index: 3; top: 0; left: 0; width: 72px; height: 28px; border-radius: 14px; background: var(--gradient-main); color: #17092e; font-family: var(--font-mono); font-size: .66rem; font-weight: 700; display: flex; align-items: center; justify-content: center; opacity: 0; transition: transform .45s cubic-bezier(.4,.1,.3,1), opacity .25s, background .25s; }
+.token small { font-size: .52rem; margin-left: 3px; opacity: .8; }
+.token.on { opacity: 1; }
+.token.bad { background: var(--accent-danger); color: #fff; }
+.token.back { background: var(--accent-purple); color: #06231b; }
+
+.map { font-size: .8rem; color: var(--text-secondary); margin: 2px 0 14px; max-width: none; }
+.map b { color: var(--text-primary); }
+.now { font-family: var(--font-mono); font-size: .82rem; color: var(--text-primary); background: var(--bg-tertiary); border-left: 3px solid var(--accent-primary); border-radius: 6px; padding: 10px 14px; margin: 6px 0 0; min-height: 40px; }
+.now.warn { border-color: var(--accent-warning); }
+.now.err { border-color: var(--accent-danger); }
+.now.note { border-color: var(--accent-purple); }
+.now.muted { color: var(--text-muted); border-color: var(--border-color); }
+
+.panes { display: grid; grid-template-columns: 1.25fr 1fr; gap: 18px; margin-top: 20px; }
+.pane h4 { font-size: .75rem; text-transform: uppercase; letter-spacing: .07em; color: var(--accent-primary); margin-bottom: 8px; }
+.log { list-style: none; margin: 0; font-family: var(--font-mono); font-size: .78rem; max-height: 220px; overflow-y: auto; }
+.log li { padding: 4px 0 4px 14px; border-left: 2px solid var(--border-color); color: var(--text-secondary); margin: 0; }
+.log li.ok { border-color: var(--accent-primary); }
+.log li.warn { border-color: var(--accent-warning); color: #ffb08a; }
+.log li.err { border-color: var(--accent-danger); color: #ff8fa3; }
+.log li.note { border-color: var(--accent-purple); }
+.log li.at { background: rgba(255,255,255,.04); }
+.log li b { color: var(--text-primary); }
+.obj { font-family: var(--font-mono); font-size: .74rem; background: var(--bg-code); border: 1px solid var(--border-color); border-radius: 6px; padding: 10px 12px; max-height: 250px; overflow-y: auto; }
+.obj .grp { color: var(--accent-secondary); margin-bottom: 3px; }
+.obj .grp span { color: var(--text-muted); }
+.obj .grp + .grp { margin-top: 10px; }
+.obj .row { display: flex; gap: 8px; padding: 1px 0 1px 10px; color: var(--text-secondary); }
+.obj .row .k { color: var(--text-muted); min-width: 128px; }
+.obj .row .v { color: var(--text-primary); word-break: break-all; }
+.obj .row.new { background: rgba(167,139,250,.14); border-radius: 3px; }
+.obj .row.new .k { color: var(--accent-primary); }
+table.mini { width: 100%; font-family: var(--font-mono); font-size: .74rem; margin: 0; }
+table.mini td { padding: 5px 6px; border-bottom: 1px solid var(--border-color); }
+table.mini td:last-child { text-align: right; }
+.pill { display: inline-block; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 0 8px; font-family: var(--font-mono); font-size: .72rem; }
+.pill.hot { border-color: var(--accent-warning); color: var(--accent-warning); }
+.muted { color: var(--text-muted); }
+.small { font-size: .78rem; }
+
+@media (max-width: 760px) {
+  .track { grid-template-columns: 1fr; padding-top: 10px; }
+  .panes { grid-template-columns: 1fr; }
+  .sim .state, .sim .counter { margin-left: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .token { transition: none; } }
+</style>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const sim = $('sim'), track = $('track'), token = $('token'), log = $('log');
+  const stateEl = $('simState'), counter = $('counter'), now = $('now');
+  const regEl = document.querySelector('#ledger tbody');
+  const queueCount = $('queueCount'), queueNote = $('queueNote');
+  const mods = [...track.querySelectorAll('.mod')];
+  const playBtn = sim.querySelector('[data-go="play"]');
+  const tip = $('tip'), saga = $('saga');
+
+  const DESC = [
+    ['Wallet', 'Where the keys live. It is not the holder: one investor can hold several wallets, lose one, and still be the same holder in the register.'],
+    ['Identity', 'The on-chain identity carrying claims signed by issuers you trust: passed KYC, accredited, resident here, not on a list. The token asks the identity, never the raw address.'],
+    ['Compliance', 'The rule modules, each one independently testable: jurisdiction lists, maximum holders, lock-up windows, minimum holding, volume caps. A transfer has to satisfy all of them.'],
+    ['Token', 'The contract that accepts or refuses. In a security token the refusal is the product: a transfer that breaks a rule reverts before it executes, and that is visible to anyone.'],
+    ['Register', 'The official record of who owns what, kept by the transfer agent. When the chain is the register, a peer to peer transfer updates it with nobody in the middle. When it is a mirror, you inherit a reconciliation problem.'],
+    ['Cash leg', 'The other half of any purchase. On the same chain it can settle atomically with the asset; off chain it becomes a two-phase problem with compensations.'],
+    ['Custodian', 'Who holds the underlying asset, which is a separate question from who holds the keys. Confusing the two is a common and expensive mistake.'],
+    ['Agent', 'The privileged role that can freeze, force a transfer or recover a lost wallet. It exists because a security must be recoverable, and it is the reason this is not a bearer asset.']
+  ];
+  const FRAME = ['on-chain compliance, what a transfer must pass',
+    'Identity, Compliance and Token together decide whether a movement is legal before any balance changes. The check is evaluated on chain, so the reason for a refusal is auditable by anyone, and it costs gas on every single transfer. That cost is the reason the newer minimal standards exist.'];
+
+  const REQUEST = {
+    ok: { asset: 'ACME-A', units: '500', from: 'inv_0041', to: 'inv_0187', kind: 'peer to peer' },
+    reject: { asset: 'ACME-A', units: '500', from: 'inv_0041', to: 'inv_0902', kind: 'peer to peer' },
+    dvp: { asset: 'ACME-A', units: '500', price: '25000 USDC', from: 'inv_0041', to: 'inv_0187', kind: 'purchase' },
+    recover: { asset: 'ACME-A', units: '500', holder: 'inv_0041', lost_wallet: '0x9f2b...4a1', kind: 'recovery' },
+    stock: { asset: 'AAPLx', units: '100', price: '25,000 USDC', buyer: 'inv_0187', wrapper: 'claim on a custodied share', kind: 'purchase' },
+    dividend: { asset: 'AAPLx', event: 'cash dividend', gross_per_share: '0.26 USD', record_date: '2026-11-10', kind: 'corporate action' }
+  };
+
+  // module, text, state, kind, register snapshot, backwards, fields added
+  const SCENARIOS = {
+    ok: [
+      [0, 'holder signs a transfer of <b>500 units</b> to another investor', 'submitted', 'ok', null, false, { tx: '0x7c41...9e', signer: '0x9f2b...4a1' }],
+      [1, 'the receiver resolves to an identity with a valid, unexpired KYC claim', 'checking', 'ok', null, false, { receiver_identity: 'id_0187', kyc_claim: 'valid', expires: '2027-03-01' }],
+      [2, 'jurisdiction allowed, lock-up over, holder cap has room: all modules pass', 'checking', 'ok', null, false, { jurisdiction: 'allowed', lockup: 'expired', holder_cap: '184 of 499' }],
+      [3, 'the token accepts the transfer and moves the balance', 'transferred', 'ok', [['inv_0041', '0x9f2b...4a1', '1,500'], ['inv_0187', '0x3e71...c08', '500']], false, { result: 'accepted' }],
+      [4, 'the register is updated by the transfer itself. Nobody had to intervene', 'settled', 'ok', [['inv_0041', '0x9f2b...4a1', '1,500'], ['inv_0187', '0x3e71...c08', '500']], false, { register: 'updated on chain', intervention: 'none' }]
+    ],
+    reject: [
+      [0, 'holder signs a transfer of <b>500 units</b> to an address they were given', 'submitted', 'ok', null, false, { tx: '0x22ab...5f', signer: '0x9f2b...4a1' }],
+      [1, 'the receiving address resolves to no identity at all', 'checking', 'err', null, false, { receiver_identity: 'none', kyc_claim: 'missing' }],
+      [2, 'the modules never run. There is nothing to evaluate them against', 'checking', 'warn', null, false, { modules_evaluated: 'none' }],
+      [3, 'the token refuses and the transaction reverts. No balance moved', 'rejected', 'err', null, false, { result: 'reverted', reason: 'receiver not verified' }],
+      [4, 'the register is untouched, and the refusal is on chain for anyone to audit', 'rejected', 'note', [['inv_0041', '0x9f2b...4a1', '2,000']], false, { register: 'unchanged' }]
+    ],
+    dvp: [
+      [0, 'buyer signs one transaction carrying both legs: 500 units against 25,000 USDC', 'submitted', 'ok', null, false, { tx: '0x5d90...b3', legs: '2' }],
+      [1, 'both sides resolve to verified identities', 'checking', 'ok', null, false, { buyer_identity: 'id_0187', seller_identity: 'id_0041' }],
+      [2, 'compliance passes for the asset leg', 'checking', 'ok', null, false, { jurisdiction: 'allowed', holder_cap: '184 of 499' }],
+      [5, 'the cash leg is escrowed in the same transaction, not in a separate one', 'settling', 'ok', null, false, { cash_leg: 'escrowed', settlement: 'atomic' }],
+      [3, 'asset and cash move together. Either both land or neither does', 'settled', 'ok', [['inv_0041', '0x9f2b...4a1', '1,500'], ['inv_0187', '0x3e71...c08', '500']], false, { result: 'accepted', counterparty_risk: 'none between legs' }],
+      [6, 'the custodian position is unchanged: the underlying never moved, only the claim did', 'settled', 'note', null, false, { underlying: 'unchanged', custodian: 'unchanged' }]
+    ],
+    recover: [
+      [0, 'the holder has lost the key to their wallet. The units are still theirs', 'reported', 'warn', [['inv_0041', '0x9f2b...4a1 (lost)', '2,000']], false, { lost_wallet: '0x9f2b...4a1', balance_at_risk: '2,000' }],
+      [7, 'the agent verifies the claim against the identity, off chain and on paper', 'in review', 'note', null, false, { case_id: 'rec_118', evidence: 'identity documents' }],
+      [1, 'the new wallet is bound to the same identity, and is verified', 'in review', 'ok', null, false, { new_wallet: '0x6b13...7d2', identity: 'id_0041 unchanged' }],
+      [7, 'the agent calls recovery: balance, frozen amount and identity link all move', 'recovered', 'ok', null, true, { balance_moved: '2,000', frozen_moved: '0', link_moved: 'yes' }],
+      [4, 'the register shows the same holder at a new address. Ownership never changed', 'recovered', 'ok', [['inv_0041', '0x6b13...7d2', '2,000']], false, { owner: 'inv_0041', address: 'new' }]
+    ]
+    ,
+    stock: [
+      [3, 'the program already exists: legal wrapper, custody agreement and token deployed months ago', 'open', 'note', null, false, { program: 'live since 2026-04', supply_model: 'open ended' }],
+      [1, 'the buyer is a non-US person under an offshore exemption, claim valid', 'checking', 'ok', null, false, { buyer_identity: 'id_0187', exemption: 'offshore only', us_persons: 'excluded' }],
+      [5, '25,000 USDC escrowed, and nothing is minted yet', 'funded', 'ok', null, false, { cash_leg: 'escrowed', minted: 'nothing yet' }],
+      [6, 'the broker buys 100 real shares and the custodian confirms the position', 'backed', 'ok', null, false, { shares_bought: '100', custodian_position: 'confirmed', backing: '1 to 1' }],
+      [3, 'only now the token mints, against a position that already exists', 'issued', 'ok', [['inv_0187', '0x3e71...c08', '100']], false, { minted: '100', order: 'secure the share, then mint' }],
+      [4, 'this register is a <b>mirror</b> of the custodian position, not the shareholder register', 'issued', 'note', [['inv_0187', '0x3e71...c08', '100']], false, { register_type: 'mirror', reconciliation: 'required, daily' }],
+      [6, "Apple's own transfer agent has never heard of the buyer. The custodian is the shareholder of record", 'issued', 'warn', null, false, { shareholder_of_record: 'the custodian', voting_rights: 'not passed through' }],
+      [0, 'the token now trades 24/7 against an underlying that trades 09:30 to 16:00', 'live', 'warn', null, false, { token_hours: '24/7', underlying_hours: 'market hours', gap: 'unhedgeable overnight' }],
+      [3, 'on the secondary market this same purchase mints nothing: it moves tokens that already exist', 'live', 'note', null, false, { primary: 'mint against a new share', secondary: 'transfer of existing units', why_open_ended: 'mint and burn is the arbitrage that holds the peg' }]
+    ],
+    dividend: [
+      [6, 'the dividend lands at the custodian, gross, on the payment date', 'received', 'ok', null, false, { gross: '26.00 USD', per_share: '0.26' }],
+      [7, 'withholding tax is deducted at source, by the holder treaty status the issuer knows', 'withheld', 'warn', null, false, { withholding: '15%', net: '22.10 USD', basis: 'treaty status on file' }],
+      [4, 'holders are snapshotted at the record date, from the on-chain balances', 'snapshot', 'ok', [['inv_0187', '0x3e71...c08', '100']], false, { record_date: '2026-11-10', holders: '1' }],
+      [5, 'the net amount is distributed in stablecoin, pro rata', 'distributed', 'ok', null, false, { distributed: '22.10 USDC', method: 'stablecoin, not more tokens' }],
+      [3, 'the token count does not change. This is a distribution, not a rebase', 'distributed', 'note', [['inv_0187', '0x3e71...c08', '100']], false, { balance_change: 'none', yield_model: 'distribution' }],
+      [6, 'the vote that came with those shares was exercised by the custodian, or not at all', 'distributed', 'warn', null, false, { voting: 'held by the custodian' }]
+    ]
+  };
+
+  let steps = [], i = -1, timer = null, current = null;
+
+  function moveTo(step) {
+    const t = track.getBoundingClientRect(), m = mods[step[0]].getBoundingClientRect();
+    token.className = 'token on' + (step[3] === 'err' ? ' bad' : step[5] ? ' back' : '');
+    token.style.transform = 'translate(' + (m.left - t.left + m.width / 2 - token.offsetWidth / 2) + 'px,'
+      + (m.top - t.top - token.offsetHeight - 6) + 'px)';
+  }
+
+  function paintObject() {
+    const objEl = $('obj');
+    if (i < 0 || !current) { objEl.innerHTML = '<p class="muted small">Nothing yet.</p>'; return; }
+    const checks = {};
+    let fresh = {};
+    steps.slice(0, i + 1).forEach((s, n) => {
+      const patch = s[6] || {};
+      Object.assign(checks, patch);
+      if (n === i) fresh = Object.assign({}, patch);
+    });
+    checks.status = steps[i][2];
+    if (steps[i][2] !== (steps[i - 1] || [])[2]) fresh.status = checks.status;
+    const rows = (o, isNew) => Object.entries(o).map(([k, v]) =>
+      '<div class="row' + (isNew && k in fresh ? ' new' : '') + '"><span class="k">' + k + '</span><span class="v">' + v + '</span></div>').join('');
+    objEl.innerHTML =
+      '<div class="grp">request <span>what was asked, unchanged</span></div>' +
+      rows(REQUEST[current], false) +
+      '<div class="grp">checks <span>what each stage established</span></div>' +
+      rows(checks, true);
+  }
+
+  // Un registro es estado, no un diario: cada paso que lo toca trae la foto completa.
+  function render() {
+    mods.forEach((m) => (m.className = 'mod'));
+    log.innerHTML = '';
+    let snapshot = null, flags = 0;
+
+    steps.slice(0, i + 1).forEach((s, n) => {
+      const [mod, text, state, kind, reg] = s;
+      mods[mod].classList.add(kind === 'err' ? 'err' : kind === 'warn' ? 'warn' : 'done');
+      const li = document.createElement('li');
+      li.className = (kind || '') + (n === i ? ' at' : '');
+      li.innerHTML = text;
+      log.appendChild(li);
+      if (reg) snapshot = reg;
+      if (state === 'in review' || state === 'reported') flags = 1;
+      if (state === 'recovered' || state === 'settled' || state === 'rejected') flags = 0;
+    });
+
+    regEl.innerHTML = snapshot
+      ? snapshot.map((r) => '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td><td>' + r[2] + '</td></tr>').join('')
+      : '<tr class="muted"><td colspan="3">Nothing yet.</td></tr>';
+
+    if (i < 0) {
+      token.className = 'token';
+      log.innerHTML = '<li class="muted">Nothing yet.</li>';
+      now.className = 'now muted';
+      now.textContent = steps.length ? 'Ready. Forward takes one step.' : 'Pick a scenario, then step through it with Back and Forward.';
+      stateEl.textContent = 'idle';
+    } else {
+      const s = steps[i];
+      mods[s[0]].classList.add('active');
+      moveTo(s);
+      now.className = 'now ' + (s[3] || '');
+      now.innerHTML = s[1];
+      stateEl.textContent = s[2];
+      log.scrollTop = log.scrollHeight;
+    }
+
+    paintObject();
+    queueCount.textContent = flags;
+    queueCount.className = flags ? 'pill hot' : 'pill';
+    queueNote.textContent = flags ? 'One case open with the agent. Nothing moves until a human signs off.' : 'None.';
+    counter.textContent = (i + 1) + ' / ' + steps.length;
+    sim.querySelector('[data-go="prev"]').disabled = i < 0;
+    sim.querySelector('[data-go="next"]').disabled = !steps.length || i >= steps.length - 1;
+    playBtn.disabled = !steps.length;
+  }
+
+  function showTip(el) {
+    const d = el.id === 'saga' ? FRAME : DESC[+el.dataset.mod];
+    tip.innerHTML = '<b>' + d[0] + '</b>' + d[1];
+    tip.hidden = false;
+    const t = track.getBoundingClientRect(), m = el.getBoundingClientRect();
+    tip.style.left = Math.max(0, Math.min(t.width - tip.offsetWidth, m.left - t.left + m.width / 2 - tip.offsetWidth / 2)) + 'px';
+    tip.style.top = (m.bottom - t.top + 10) + 'px';
+  }
+  const hideTip = () => { tip.hidden = true; };
+
+  mods.forEach((m) => (m.tabIndex = 0));
+  track.addEventListener('mouseover', (e) => { const m = e.target.closest('.mod, .saga'); if (m) showTip(m); });
+  track.addEventListener('mouseout', (e) => { const m = e.target.closest('.mod, .saga'); if (m && !m.contains(e.relatedTarget)) hideTip(); });
+  track.addEventListener('focusin', (e) => { const m = e.target.closest('.mod'); if (m) showTip(m); });
+  track.addEventListener('focusout', hideTip);
+  track.addEventListener('click', (e) => { const m = e.target.closest('.mod, .saga'); if (m) { e.stopPropagation(); showTip(m); } });
+  document.addEventListener('click', hideTip);
+
+  function placeFrame() {
+    const t = track.getBoundingClientRect();
+    const a = mods[1].getBoundingClientRect(), b = mods[3].getBoundingClientRect();
+    const left = Math.min(a.left, b.left), top = Math.min(a.top, b.top);
+    saga.hidden = false;
+    saga.style.left = (left - t.left - 7) + 'px';
+    saga.style.top = (top - t.top - 7) + 'px';
+    saga.style.width = (Math.max(a.right, b.right) - left + 14) + 'px';
+    saga.style.height = (Math.max(a.bottom, b.bottom) - top + 14) + 'px';
+  }
+
+  function step(d) { i = Math.max(-1, Math.min(steps.length - 1, i + d)); render(); }
+  function pause() { clearInterval(timer); timer = null; playBtn.innerHTML = '&#9654; Play'; }
+  function play() {
+    if (timer) return pause();
+    if (i >= steps.length - 1) i = -1;
+    playBtn.innerHTML = '&#10073;&#10073; Pause';
+    timer = setInterval(() => { i >= steps.length - 1 ? pause() : step(1); }, 1600);
+    step(1);
+  }
+  function load(name) {
+    pause(); steps = SCENARIOS[name]; current = name; i = -1;
+    sim.querySelectorAll('[data-load]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.load === name));
+    render();
+  }
+
+  sim.addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.load) return load(b.dataset.load);
+    const go = b.dataset.go;
+    if (go === 'play') return play();
+    pause();
+    if (go === 'next') step(1);
+    if (go === 'prev') step(-1);
+    if (go === 'reset') { i = -1; render(); }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (!steps.length) return;
+    const r = sim.getBoundingClientRect();
+    if (!(r.top < innerHeight && r.bottom > 0)) return;
+    if (e.key === 'ArrowRight') { pause(); step(1); }
+    if (e.key === 'ArrowLeft') { pause(); step(-1); }
+    if (e.key === ' ') { e.preventDefault(); play(); }
+  });
+
+  addEventListener('resize', () => { render(); placeFrame(); });
+  render();
+  placeFrame();
+})();
+</script>
+
+
+<h2><span class="num">01</span>The register is the asset, the token is a representation</h2>
+<p class="lede">This is the single idea that reorders everything else. Get it wrong and you will build a system that is technically correct and legally meaningless.</p>
+
+<p>Ownership of a security is whatever the <b>official register</b> says it is. In traditional markets a transfer agent keeps that register. Tokenization does not remove the register, it moves it, and the interesting question for any project is always the same one: <b>is the chain the register, or a mirror of it?</b></p>
+
+<div class="grid">
+<div class="card">
+<h4>The chain as the register</h4>
+<p>The token balance is the official holding. The transfer agent operates on chain, and a peer to peer transfer between two verified holders updates the register with no intervention. This is what the regulated end of the market is moving toward, and it is what makes 24/7 markets possible.</p>
+<p class="fail"><b>Costs you:</b> every legal requirement now has to be expressible as code, and mistakes are on a public ledger.</p>
+</div>
+<div class="card">
+<h4>The chain as a mirror</h4>
+<p>The register stays in the issuer's books and the token is a claim ticket that tracks it. Simpler to launch, and most early projects are here whether they admit it or not.</p>
+<p class="fail"><b>Costs you:</b> two sources of truth that can drift, and a reconciliation problem that looks exactly like the one in payments.</p>
+</div>
+</div>
+
+<div class="invariant"><b>The test:</b> if the token contract and the issuer's records disagree tomorrow morning, which one does a court believe? Whatever you answer is your real architecture, and everything else is implementation detail.</div>
+
+<h2><span class="num">02</span>Compliance lives inside the token</h2>
+<p class="lede">In a bearer token, a transfer is a balance update. In a security token, a transfer is a request that the contract is allowed to refuse, and that refusal is the product.</p>
+
+<table>
+<thead><tr><th>standard</th><th>where the rules live</th><th>shape</th></tr></thead>
+<tbody>
+<tr><td>ERC-20</td><td>nowhere</td><td>Bearer. Anyone can hold, anyone can send. Useless as a security wrapper on its own.</td></tr>
+<tr><td>ERC-1404</td><td>a single check function</td><td>The minimal restricted token: a hook that returns a reason code. Easy to ship, hard to grow into.</td></tr>
+<tr><td>ERC-1400</td><td>mostly off chain</td><td>Partitions or tranches, documents, and an off-chain compliance service the contract consults. Flexible, and the flexibility is where implementations diverge.</td></tr>
+<tr><td>ERC-3643 (T-REX)</td><td>fully on chain</td><td>An identity registry plus pluggable compliance modules. A transfer that breaks a rule is rejected by the contract before it executes. Finalized ERC, with an ISO standardization effort underway.</td></tr>
+<tr><td>ERC-7518</td><td>on chain, partitioned</td><td>Partitioned multi-asset tokens with dynamic vouchers, aimed at issuers that need many classes inside one contract.</td></tr>
+<tr><td>ERC-7943 (uRWA)</td><td>a minimal hook set</td><td>The newest of these and now Final. Rather than a framework, it defines the few functions everyone was writing anyway: can this account transact, is this transfer allowed, freeze, forced transfer. Extends ERC-20, ERC-721 or ERC-1155, and its naming is backward compatible with ERC-3643 and ERC-7518.</td></tr>
+<tr><td>Token-2022</td><td>on chain, Solana</td><td>Transfer hooks, accounts frozen by default, and a permanent delegate for clawback. The same idea in a different ecosystem.</td></tr>
+</tbody>
+</table>
+
+<div class="note">The thing to notice is that all of them answer one question: <b>where does the rule get evaluated, and who can see it?</b> Fully on chain is auditable by anyone and costs gas on every transfer. Off chain is cheap and private, and asks you to trust an oracle of eligibility that nobody outside can inspect. The gas difference is not theoretical: a minimal hook runs in the single-digit thousands, while a modular registry check can cost an order of magnitude more, on every transfer, forever.</div>
+
+<h3>The ERC-1400 family, in pieces</h3>
+<p>ERC-1400 is usually cited as one thing and is really an umbrella over four, which is why two implementations that both claim it can be very different:</p>
+<ul>
+<li><b>ERC-1594</b>: the core security token, with the transfer that can be refused and a reason returned.</li>
+<li><b>ERC-1410</b>: partially fungible balances, so one holding can be split into tranches with different restrictions.</li>
+<li><b>ERC-1643</b>: document management, attaching and hashing the legal documents that the token depends on.</li>
+<li><b>ERC-1644</b>: the controller operation, which is the forced transfer power under another name.</li>
+</ul>
+<p>If somebody says their token is ERC-1400, the useful question is which of the four they actually implemented.</p>
+
+<h3>Standards for the shape of the asset, not its rules</h3>
+<p>The ones above govern who may hold. These govern what the holding <b>is</b>, and they compose with the compliance layer rather than replacing it:</p>
+<ul>
+<li><b>ERC-721</b> for a unique asset: one deed, one artwork, one loan.</li>
+<li><b>ERC-1155</b> for many classes in one contract, useful when an issuer has dozens of series.</li>
+<li><b>ERC-3525</b> semi-fungible: units that share a slot but carry their own value, which fits bonds and instruments with a face value per unit.</li>
+<li><b>ERC-4626</b> the tokenized vault: a deposit and share accounting standard. It is not a security standard, but it is how most yield-bearing wrappers around a tokenized asset are built, and integrations expect it.</li>
+<li><b>ERC-884</b> an older one worth knowing for context: tokens representing shares under Delaware corporate law, an early attempt at binding a token to a legal register.</li>
+</ul>
+
+<h3>Outside the EVM</h3>
+<p>Several chains put the controls at the protocol layer instead of in a contract, which changes the failure modes: there is less code to audit and less room to express an unusual rule.</p>
+<table>
+<thead><tr><th>chain</th><th>what it gives you natively</th></tr></thead>
+<tbody>
+<tr><td>Solana Token-2022</td><td>Transfer hooks, default frozen accounts, permanent delegate for clawback, confidential transfers.</td></tr>
+<tr><td>XRPL</td><td>Multi-Purpose Tokens with freeze and clawback at the protocol layer, authorized trust lines, and a permissioned trading venue in progress.</td></tr>
+<tr><td>Algorand</td><td>Assets with freeze and clawback addresses built into the asset parameters from day one.</td></tr>
+<tr><td>Hedera</td><td>Native token service with a KYC flag per account, freeze and wipe.</td></tr>
+<tr><td>Stellar</td><td>Authorization flags on trust lines, so an account is inert until the issuer enables it.</td></tr>
+<tr><td>Polymesh</td><td>A chain purpose-built for securities, with identity and compliance as protocol primitives rather than contracts. Smaller ecosystem, which is the trade.</td></tr>
+</tbody>
+</table>
+
+<h3>Moving across chains</h3>
+<p>A restricted token that exists on two chains has to keep one register, and bridging by lock and mint quietly creates a second one. The standards that address this are transport rather than compliance: <b>Chainlink CCIP</b> with its cross-chain token model, <b>LayerZero OFT</b> and <b>Wormhole NTT</b>. None of them decides who may hold the asset, so the compliance layer still has to be evaluated on the destination chain.</p>
+
+<h3>Naming the thing: identifiers</h3>
+<p>The least discussed and most immediately practical part. A tokenized security needs to be identifiable by systems that have never heard of your contract address.</p>
+<ul>
+<li><b>ISO 24165, the Digital Token Identifier</b>: an ISO standard code for a specific token. ESMA mandated its use under MiCA in July 2024, which turned it from an idea into a compliance requirement in Europe.</li>
+<li><b>ISIN</b> for the instrument and <b>LEI</b> for the issuing entity: the tokenized version still needs both to be reportable anywhere in traditional finance.</li>
+<li><b>CAIP-2 and CAIP-19</b>: chain-agnostic identifiers for the network and the asset, which is what tooling uses when it has to name a token across ecosystems.</li>
+</ul>
+
+<h3>Open ended or closed: when does the token get created?</h3>
+<p>The most common confusion in this whole page. The asset already exists, so why is anything being minted? Because there are two supply models and they behave differently.</p>
+<table>
+<thead><tr><th>model</th><th>when tokens are created</th><th>what it buys you</th></tr></thead>
+<tbody>
+<tr><td>closed</td><td>Once. A fixed block is deposited, a fixed supply is minted, and from then on every trade is a transfer of existing units.</td><td>Simple, and honest for an asset that is genuinely fixed: one building, one loan, one fund that is closed to new money. The price can drift from the underlying and nothing pulls it back.</td></tr>
+<tr><td>open ended</td><td>Continuously. A subscription buys the underlying and mints against it; a redemption burns and sells.</td><td>The supply tracks demand, and that mint and burn is the arbitrage that keeps the token near the value of the thing it represents. Almost every tokenized treasury, fund and equity wrapper works this way.</td></tr>
+</tbody>
+</table>
+<div class="invariant"><b>What is actually prior:</b> tokenization is the structure, not the minting. The legal wrapper, the custody agreement, the token contract and the compliance rules are all in place before anyone buys. What happens per trade is issuance or redemption inside that structure, and on the secondary market not even that: just a transfer.</div>
+
+<h2><span class="num">03</span>Identity, not addresses</h2>
+<p class="lede">A wallet is not an investor. Eligibility belongs to a person or an entity, and that person can hold several wallets, lose one, and still be the same holder.</p>
+
+<div class="grid">
+<div class="card">
+<h4>The identity object</h4>
+<p>An on-chain identity contract holds claims signed by issuers you trust: this person passed KYC, is accredited, is resident here, is not on a list. The token asks the identity, not the address.</p>
+<p class="fail"><b>Fails as:</b> whitelisting raw addresses, which breaks the first time somebody changes wallet.</p>
+</div>
+<div class="card">
+<h4>Claims and their issuers</h4>
+<p>A claim is only as good as who signed it and when. Claims expire, jurisdictions change, and an accreditation from two years ago is not evidence today. Expiry is a design decision, not an afterthought.</p>
+<p class="fail"><b>Fails as:</b> claims with no expiry, so the register slowly fills with people who no longer qualify.</p>
+</div>
+<div class="card">
+<h4>Compliance modules</h4>
+<p>Rules composed as small units: maximum holders per jurisdiction, minimum holding, lock-up windows, country allow and deny lists, daily volume caps. Each is independently testable, which is the only way this stays sane.</p>
+<p class="fail"><b>Fails as:</b> one monolithic check that nobody can change without redeploying the token.</p>
+</div>
+<div class="card">
+<h4>The holder count problem</h4>
+<p>Several exemptions cap how many holders of a given type an issuer may have. That cap has to be enforced at transfer time, on chain, forever, and it is the rule people most often discover late.</p>
+<p class="fail"><b>Fails as:</b> a successful secondary market that quietly breaks the exemption the whole structure depends on.</p>
+</div>
+</div>
+
+<h2><span class="num">04</span>The powers the issuer keeps</h2>
+<p class="lede">Here is where a security token stops looking like crypto. A regulated asset must be recoverable, and recoverable means somebody can move your tokens without your key.</p>
+
+<table>
+<thead><tr><th>power</th><th>what it does</th><th>why it exists</th></tr></thead>
+<tbody>
+<tr><td>freeze address</td><td>Stops a specific holder from sending or receiving.</td><td>Court order, sanctions hit, suspected fraud, an account under investigation.</td></tr>
+<tr><td>freeze partial</td><td>Locks part of a balance and leaves the rest usable.</td><td>Lock-ups, pledged collateral, a disputed portion.</td></tr>
+<tr><td>forced transfer</td><td>Moves tokens without the holder's signature. The destination still has to be a verified identity, which is the one guardrail the override keeps.</td><td>Inheritance, court-ordered transfer, correcting an error the issuer is liable for.</td></tr>
+<tr><td>recovery</td><td>Moves the balance, the frozen amount and the identity link from a lost wallet to a new one bound to the same identity.</td><td>Someone lost a key. In a bearer token the money is gone. In a security, the holding survives, because the register says who owns it.</td></tr>
+<tr><td>pause</td><td>Stops all transfers of the token.</td><td>An incident, a halted market, a discovered bug.</td></tr>
+</tbody>
+</table>
+
+<div class="invariant"><b>The trade, stated plainly:</b> you get recoverability and you give up censorship resistance. That is not a bug in the design, it is the design. A security has an issuer, an issuer has obligations, and obligations require somebody able to act. If your users expect bearer-token behaviour, the surprise happens at the worst moment.</div>
+
+<h2><span class="num">05</span>The money leg</h2>
+<p class="lede">Every transfer of value has two legs: the asset and the cash. Most of the risk in traditional settlement comes from those two legs happening at different times.</p>
+
+<div class="grid">
+<div class="card">
+<h4>Delivery versus payment, natively</h4>
+<p>When both legs are tokens on the same chain, one transaction can move the asset and the cash together. Either both happen or neither does, and counterparty risk between the legs disappears rather than being managed.</p>
+<p class="fail"><b>Fails as:</b> two transactions with a hopeful gap in between, which is the old problem with new tooling.</p>
+</div>
+<div class="card">
+<h4>T+0 is not the same as atomic</h4>
+<p>Same day settlement means both legs land today. Atomic means they land in the same instant, indivisibly. The first is an operational improvement, the second removes a class of risk.</p>
+<p class="fail"><b>Fails as:</b> selling T+0 while the cash leg still clears through a bank the next morning.</p>
+</div>
+<div class="card">
+<h4>When the cash leg is off chain</h4>
+<p>If payment arrives by wire and the asset moves on chain, you are back to a two-phase problem with compensations, a reconciliation, and an exception queue. The tokenized side does not save you.</p>
+<p class="fail"><b>Fails as:</b> minting on a payment notification that later fails or is recalled.</p>
+</div>
+<div class="card">
+<h4>Weekend liquidity</h4>
+<p>A 24/7 asset settled against a five-day cash rail has a gap every weekend. Stablecoins exist in this stack mostly to close that gap, which is also why so much tokenized treasury volume settles in them.</p>
+<p class="fail"><b>Fails as:</b> promising instant redemption and discovering the banking calendar on a Saturday.</p>
+</div>
+</div>
+
+<h2><span class="num">06</span>Servicing: the part that never stops</h2>
+<p class="lede">Issuance is a project. Servicing is a job, every day, for the life of the asset, and it is where most operational cost actually lives.</p>
+<ul>
+<li><b>Price and NAV</b>: a fund token needs a value, published on a schedule, usually delivered on chain by an oracle. A stale NAV is not a cosmetic bug: it is a mispriced subscription or redemption.</li>
+<li><b>Subscriptions and redemptions</b>: minting and burning against the register at each window, with the cash leg on the other side.</li>
+<li><b>Yield</b>: paid three ways, and they are not interchangeable. A <b>rebasing</b> balance that grows, a <b>distribution</b> of a separate token, or an <b>accruing price</b> where the token count stays fixed and the value rises. Integrations break on the first, tax treatment differs on all three.</li>
+<li><b>Corporate actions</b>: splits, conversions, redemptions at maturity, restructurings. The traditional world has centuries of edge cases here and the chain has none of them built in.</li>
+<li><b>Reporting</b>: statements, tax documents, holder lists. Boring, mandatory, and a real integration surface.</li>
+</ul>
+
+<h2><span class="num">07</span>Primary, secondary, and the liquidity that usually is not there</h2>
+<p class="lede">The pitch for tokenization is usually liquidity. The reality is that liquidity is a market structure problem, and a token does not create one.</p>
+<ul>
+<li><b>Primary issuance</b> happens under an exemption, and the exemption sets the rules the token has to enforce: who may buy, how many holders, how long they must hold, which jurisdictions are excluded.</li>
+<li><b>Lock-ups</b> are the most common enforced rule, and the first thing a compliance module implements.</li>
+<li><b>Secondary trading</b> of a regulated token needs a venue licensed for it. In the US that is an alternative trading system, and a firm that wants to do all of it holds several licenses at once: transfer agent for the register, broker-dealer to intermediate, ATS to run the venue.</li>
+<li><b>The hard truth</b>: most tokenized assets trade thinly or not at all. The instruments that took off are the ones where the asset is already liquid and the token adds settlement speed, not the ones where the token was supposed to conjure a market out of an illiquid asset.</li>
+</ul>
+
+<h2><span class="num">08</span>The market as it actually is</h2>
+<p class="lede">Rough shape as of 2026, to calibrate expectations. The concentration matters more than the total.</p>
+
+<table>
+<thead><tr><th>category</th><th>size</th><th>who is in it</th></tr></thead>
+<tbody>
+<tr><td>Treasuries and money market funds</td><td>around $10B</td><td>BUIDL, USYC, USDY, BENJI, OUSG, USTB and a long tail</td></tr>
+<tr><td>Private credit</td><td>around $8B</td><td>Maple, Centrifuge, Goldfinch, Apollo's tokenized credit fund</td></tr>
+<tr><td>Real estate</td><td>$2B to $3B</td><td>fragmented, many small issuers</td></tr>
+<tr><td>Commodities</td><td>around $1.5B</td><td>PAXG and XAUT dominate</td></tr>
+<tr><td>Equities</td><td>$0.5B to $1B</td><td>early, and the regulatory path is the bottleneck</td></tr>
+</tbody>
+</table>
+
+<p>Total tokenized real world assets crossed roughly $22B during 2026. For scale, that is a rounding error next to the markets it aims at, and it is heavily concentrated in the single easiest instrument to tokenize: short-dated government debt, where the asset is already liquid, already priced daily, and already held by a regulated custodian.</p>
+
+<h2><span class="num">09</span>How two companies actually do it</h2>
+<p class="lede">Two different answers to the same question, and the contrast explains the space better than any definition.</p>
+
+<h3>Securitize: own the whole regulated stack</h3>
+<p>Securitize is vertically integrated in the boring sense that matters: it holds SEC registrations across a <b>transfer agent</b>, a <b>broker-dealer</b>, an <b>alternative trading system</b>, an investment adviser and fund administration. That combination is the product. The transfer agent registration is what lets the on-chain record be the register rather than a mirror of one, and the ATS is what lets the resulting token trade at all.</p>
+<p>On the technical side their DS Protocol embeds compliance in the token itself: issuance, transfers restricted to verified holders, dividends, voting and secondary trading. Their flagship is BlackRock's BUIDL, a tokenized money market fund that became the largest tokenized real world asset, with the firm reporting over $3B in tokenized assets on the platform.</p>
+<div class="invariant"><b>What to take from it:</b> in tokenization the licenses are the architecture. A team that cannot name which registered entity holds the register is describing a mirror, whatever the deck says.</div>
+
+<h3>Rain: tokenize your own balance sheet to fix settlement</h3>
+<p>Rain runs stablecoin-linked card programs: an API that lets fintechs issue cards, hold digital dollar accounts and move money across borders. The tokenization part is not a product they sell, it is how they solved their own problem. They <b>tokenized their credit card receivables</b> and moved settlement with Visa to USDC, which let them settle seven days a week instead of on banking days.</p>
+<p>That is the least glamorous and most convincing use of tokenization in this page: not a new asset class, but an existing balance sheet item turned into something that can move on a weekend.</p>
+<div class="invariant"><b>What to take from it:</b> the winning cases so far are the ones where tokenization removes a calendar or a settlement window, not the ones where it promises liquidity for something illiquid.</div>
+
+<h2><span class="num">10</span>What breaks</h2>
+<div class="grid">
+<div class="card">
+<h4>Stale or wrong NAV</h4>
+<p>Subscriptions and redemptions priced off an oracle that has not updated, or has updated with a bad value. Every mint and burn at that price is a real loss to somebody, and it is not reversible on chain.</p>
+</div>
+<div class="card">
+<h4>The legal wrapper disagrees with the chain</h4>
+<p>A transfer that the contract allowed but the jurisdiction did not, or a holder who stopped qualifying and nothing on chain noticed. The chain is consistent and wrong at the same time.</p>
+</div>
+<div class="card">
+<h4>One leg lands</h4>
+<p>Whenever the two legs are not atomic, some fraction of trades ends with the asset moved and the cash missing, or the reverse. That fraction is your exception queue, and it needs an owner.</p>
+</div>
+<div class="card">
+<h4>Redemption gates</h4>
+<p>The underlying asset is not as liquid as the token pretends. Redemption windows, gates and notice periods exist in the fund documents and often nowhere in the interface.</p>
+</div>
+<div class="card">
+<h4>Composability that should not compose</h4>
+<p>A restricted token deposited into an open protocol: the pool contract is not a verified holder, the transfer either reverts or, worse, succeeds and breaks the exemption. Most integration pain lives here.</p>
+</div>
+<div class="card">
+<h4>Recovery abused</h4>
+<p>The same power that saves a holder who lost a key can move tokens that were not lost. Who may call it, under what evidence, with what record, is a governance question you answer before launch or explain afterwards.</p>
+</div>
+</div>
+
+<h2><span class="num">11</span>What this shares with payments</h2>
+<p class="lede">If you have built payment systems, you already own most of this. The skeleton is the same and the vocabulary changed.</p>
+
+<table>
+<thead><tr><th>in payments</th><th>in tokenization</th><th>the shared idea</th></tr></thead>
+<tbody>
+<tr><td>Admission, KYC and KYB</td><td>Identity registry and claims</td><td>Eligibility is a stage with its own state, not a check inside signup</td></tr>
+<tr><td>The double-entry ledger</td><td>The register, and the transfer agent that keeps it</td><td>One authoritative record, and everything else is a projection of it</td></tr>
+<tr><td>Saga with compensations</td><td>Atomic DvP</td><td>Multi-party operations that must not half-complete. Tokenization can sometimes make the problem disappear instead of managing it</td></tr>
+<tr><td>Idempotency keys</td><td>Transaction hashes and nonces</td><td>The same instruction submitted twice must not move value twice</td></tr>
+<tr><td>Reconciliation against the provider</td><td>Register against custodian holdings</td><td>Somebody has to prove the two sides still agree, on a schedule</td></tr>
+<tr><td>Exception queue</td><td>Frozen balances and manual review</td><td>Anything a human must resolve needs a queue with an owner</td></tr>
+<tr><td>Fail closed</td><td>The transfer reverts</td><td>When a rule cannot be evaluated, refuse rather than guess</td></tr>
+<tr><td>Chargebacks and reversals</td><td>Forced transfer and recovery</td><td>Value systems need an undo, and the undo is always a privileged operation with a paper trail</td></tr>
+</tbody>
+</table>
+
+<div class="note">The genuine difference is stage 1. A payment is an instruction; a tokenized asset is a claim that exists in law before any code runs. The legal structure is upstream of the architecture, and no amount of engineering moves it. Full treatment of the payments side: <a href="https://mariano-aguero.github.io/payments-engineering-cheatsheet/">Payments Engineering Cheatsheet</a>.</div>
+
+<h2><span class="num">12</span>Build order</h2>
+<ol>
+<li><b>Settle the legal structure first</b>, including which entity holds the register and under which exemption the thing is sold. Everything below is downstream of that answer.</li>
+<li><b>Identity before token.</b> The registry and the claim issuers exist before a single token is minted, because the first mint is already a restricted transfer.</li>
+<li><b>One compliance module, tested alone.</b> Usually the jurisdiction allow list or the lock-up. Prove the reject path in a test before adding the second.</li>
+<li><b>Mint to a verified holder</b> and confirm the register and the chain agree.</li>
+<li><b>The transfer that must fail.</b> Write the test where a valid holder sends to an unverified address and the contract refuses. That test is the product.</li>
+<li><b>The money leg</b>, atomic if both legs are on chain, with a reconciliation and an exception queue if they are not.</li>
+<li><b>The repair powers</b>, with the policy written down: who calls freeze, who approves a forced transfer, what evidence a recovery requires.</li>
+<li><b>Servicing</b>, which is where the asset spends its life: NAV, yield, statements.</li>
+</ol>
+
+<h2><span class="num">13</span>Field glossary</h2>
+<table>
+<thead><tr><th>term</th><th>stage</th><th>what it is</th></tr></thead>
+<tbody>
+<tr><td>RWA</td><td>1</td><td>Real world asset. A claim on something that exists off the chain and would exist without it.</td></tr>
+<tr><td>SPV</td><td>1</td><td>The legal vehicle that holds the underlying asset and issues the interests the token represents.</td></tr>
+<tr><td>transfer agent</td><td>1, 5</td><td>The regulated role that keeps the official register of holders. In the US it is an SEC registration, and it is what allows the on-chain record to be the register.</td></tr>
+<tr><td>exemption</td><td>1, 7</td><td>The rule under which a security is sold without a full public registration. It dictates who may buy and the restrictions the token must enforce.</td></tr>
+<tr><td>accredited, qualified purchaser</td><td>2</td><td>Investor categories with different thresholds. The category is a claim on the identity, checked at every transfer.</td></tr>
+<tr><td>ONCHAINID</td><td>2</td><td>An on-chain identity contract holding signed claims, so eligibility follows the person rather than the address.</td></tr>
+<tr><td>claim issuer</td><td>2</td><td>Whoever signs a claim. The compliance is only as strong as the trust placed in these signers.</td></tr>
+<tr><td>compliance module</td><td>2, 5</td><td>A single composable rule: holder caps, jurisdiction lists, lock-ups, volume limits.</td></tr>
+<tr><td>whitelist</td><td>2, 5</td><td>The set of addresses allowed to hold. Necessary, and not sufficient: addresses are not identities.</td></tr>
+<tr><td>mint, burn</td><td>3, 7</td><td>Issuing against a subscription and destroying against a redemption, both against the register.</td></tr>
+<tr><td>custodian</td><td>4</td><td>Who holds the underlying asset, and separately, who holds the keys. Two different questions that get confused.</td></tr>
+<tr><td>hot, warm, cold</td><td>4</td><td>Key tiers by exposure, with limits and dual control at each boundary.</td></tr>
+<tr><td>restricted transfer</td><td>5</td><td>A transfer the token can refuse. The refusal, not the movement, is what makes it a security token.</td></tr>
+<tr><td>partition, tranche</td><td>5</td><td>Balances split into classes with different rights or restrictions inside one token.</td></tr>
+<tr><td>NAV</td><td>6</td><td>Net asset value per unit, published on a schedule and usually delivered on chain by an oracle.</td></tr>
+<tr><td>rebase, distribution, accrual</td><td>6</td><td>The three ways yield reaches a holder, and they are not interchangeable for integrations or for tax.</td></tr>
+<tr><td>corporate action</td><td>6</td><td>Splits, conversions, maturity, restructuring. Centuries of edge cases the chain does not know about.</td></tr>
+<tr><td>DvP</td><td>7</td><td>Delivery versus payment. The asset and the cash move together or not at all.</td></tr>
+<tr><td>atomic settlement</td><td>7</td><td>Both legs in one indivisible transaction. Stronger than T+0, which only says the same day.</td></tr>
+<tr><td>ATS</td><td>7</td><td>Alternative trading system. The licensed venue where a regulated token may trade secondary.</td></tr>
+<tr><td>redemption gate</td><td>7</td><td>A limit on how much can be redeemed in a window. It lives in the fund documents and often in no interface.</td></tr>
+<tr><td>freeze, forced transfer, recovery</td><td>8</td><td>The issuer's repair powers. They are why a lost key is not a lost holding, and why this is not a bearer asset.</td></tr>
+<tr><td>agent</td><td>8</td><td>The privileged role allowed to call those powers. Its policy is a governance decision, not a config value.</td></tr>
+</tbody>
+</table>
+
+<footer>
+<p>Maintained at <a href="https://github.com/mariano-aguero/tokenized-assets-cheatsheet">mariano-aguero/tokenized-assets-cheatsheet</a>. Corrections and additions via pull request are welcome.</p>
+<p>Companion pages: <a href="https://mariano-aguero.github.io/payments-engineering-cheatsheet/">Payments Engineering Cheatsheet</a> for the money side, and <a href="https://justaname-id.github.io/agentic-payments-cheatsheet/">Agentic Payments Cheatsheet</a> for machine to machine payment.</p>
+</footer>
+
+</div>
+</body>
+</html>
